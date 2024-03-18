@@ -3,37 +3,32 @@ package main
 import (
 	"context"
 	"fmt"
-	svc "github.com/calmw/grpc-service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	svc "home-assistant/service"
 	"io"
 	"log"
 	"os"
 	"time"
 )
 
+var serverAddr string
+var methodName string
+
 func main() {
 	if len(os.Args) != 3 {
 		log.Fatal("Specify a gRPC server and method to call")
 	}
-	serverAddr := os.Args[1]
-	methodName := os.Args[2]
 
-	// 获取TLS证书
-	tlsCertFile, ok := os.LookupEnv("TLS_CERT_FILE")
-	if !ok {
-		tlsCertFile = "./server.crt"
-	}
-	conn, cancel, err := setupGrpcConnection(serverAddr, tlsCertFile)
+	conn, cancel, err := setupGrpcConnection(serverAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer cancel()
 	defer conn.Close()
-	c := getUserServiceClient(conn)
+	c := getApiServiceClient(conn)
 	switch methodName {
 	case "GetUser":
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -123,19 +118,12 @@ func metadataStreamInterceptor(
 	return clientStream, err
 }
 
-func setupGrpcConnection(addr, tlsCertFile string) (*grpc.ClientConn, context.CancelFunc, error) {
+func setupGrpcConnection(addr string) (*grpc.ClientConn, context.CancelFunc, error) {
 	log.Printf("Connecting to server on %s\n", addr)
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
 		10*time.Second,
 	)
-
-	creds, err := credentials.NewClientTLSFromFile(tlsCertFile, "") // 如果第二个参数非空，将覆盖在证书中找到的主机名。并且该主机名将被信任。我们将为localhost主机名生成TLS证书，这是我们希望客户端信任的主机名，因此指定一个空字符串。
-	if err != nil {
-		return nil, cancel, err
-	}
-
-	credsOption := grpc.WithTransportCredentials(creds)
 
 	// DialContext 在配置这两项 grpc.FailOnNonTempDialError(true), grpc.WithReturnConnectionError()后，将表现出以下行为
 	// 1）遇到非临时错误时会立即返回。返回的错误值将包含遇到的错误详细信息。
@@ -143,7 +131,6 @@ func setupGrpcConnection(addr, tlsCertFile string) (*grpc.ClientConn, context.Ca
 	conn, err := grpc.DialContext(
 		ctx,
 		addr,
-		credsOption,
 		grpc.WithBlock(),                  // 确保在函数返回之前建立连接。这意味着如果在服务器启动并运行之前运行客户端，它将无限期等待。即使存在需要检查的永久性故障（例如：指定格式错误的服务器地址活不存在的主机名），这也可能导致客户端继续尝试建立连接而不退出。增加下面选项后，有些情况就不会一直等待，不返回错误
 		grpc.FailOnNonTempDialError(true), // true参数，如果发生非临时错误，将不再尝试重新建立连接，DialContext函数将返回遇到的错误
 		grpc.WithReturnConnectionError(),  // 使用此选项，当发生临时错误并且上下文在DialContext函数成功之前到期时，返回的错误还将包含阻止连接发生的原始错误。
@@ -160,20 +147,19 @@ func setupGrpcConnection(addr, tlsCertFile string) (*grpc.ClientConn, context.Ca
 	return conn, cancel, err
 }
 
-func getUserServiceClient(conn *grpc.ClientConn) svc.UsersClient {
-	return svc.NewUsersClient(conn)
+func getApiServiceClient(conn *grpc.ClientConn) svc.ApiClient {
+	return svc.NewApiClient(conn)
 }
 
-func createHelpStream(c svc.UsersClient) (svc.Users_GetHelpClient, error) {
-
-	return c.GetHelp(context.Background(), grpc.WaitForReady(true))
+func createApiStream(c svc.ApiClient) (svc.Api_HaClient, error) {
+	return c.Ha(context.Background(), grpc.WaitForReady(true))
 }
 
-func setupChat(r io.Reader, w io.Writer, c svc.UsersClient) error {
-	var clientConn = make(chan svc.Users_GetHelpClient)
+func setupChat(r io.Reader, w io.Writer, c svc.ApiClient) error {
+	var clientConn = make(chan svc.Api_HaClient)
 	var done = make(chan struct{})
 
-	stream, err := createHelpStream(c)
+	stream, err := createApiStream(c)
 	defer stream.CloseSend()
 	if err != nil {
 		return err
@@ -189,7 +175,7 @@ func setupChat(r io.Reader, w io.Writer, c svc.UsersClient) error {
 			}
 
 			if err != nil {
-				stream, err = createHelpStream(c)
+				stream, err = createApiStream(c)
 				if err != nil {
 					log.Printf("Recreating stream failed: %v", err)
 					close(clientConn)

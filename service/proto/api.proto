@@ -2,18 +2,23 @@ syntax = "proto3";
 
 option go_package = "./service";
 
-service ApiInfo{
-  rpc GetApiInfo(ApiInfoGetRequest) returns (ApiInfoGetReply) {}
+service Api{
+  rpc Ha(stream RequestHa) returns (stream HaReply) {}
 }
 
-message ApiInfoGetRequest {
+message RequestHa {
   string token = 1;
+  string requestId = 2;
+  string action = 3;
 }
 
 message Info {
   string message = 1;
 }
 
-message ApiInfoGetReply {
-  Info info = 1;
+import "google/protobuf/any.proto";
+message HaReply {
+  string token = 1;
+  string requestId = 2;
+  google.protobuf.Any data = 3;
 }

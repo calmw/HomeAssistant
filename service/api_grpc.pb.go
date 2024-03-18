@@ -19,91 +19,123 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ApiInfo_GetApiInfo_FullMethodName = "/ApiInfo/GetApiInfo"
+	Api_Ha_FullMethodName = "/Api/Ha"
 )
 
-// ApiInfoClient is the client API for ApiInfo service.
+// ApiClient is the client API for Api service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ApiInfoClient interface {
-	GetApiInfo(ctx context.Context, in *ApiInfoGetRequest, opts ...grpc.CallOption) (*ApiInfoGetReply, error)
+type ApiClient interface {
+	Ha(ctx context.Context, opts ...grpc.CallOption) (Api_HaClient, error)
 }
 
-type apiInfoClient struct {
+type apiClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewApiInfoClient(cc grpc.ClientConnInterface) ApiInfoClient {
-	return &apiInfoClient{cc}
+func NewApiClient(cc grpc.ClientConnInterface) ApiClient {
+	return &apiClient{cc}
 }
 
-func (c *apiInfoClient) GetApiInfo(ctx context.Context, in *ApiInfoGetRequest, opts ...grpc.CallOption) (*ApiInfoGetReply, error) {
-	out := new(ApiInfoGetReply)
-	err := c.cc.Invoke(ctx, ApiInfo_GetApiInfo_FullMethodName, in, out, opts...)
+func (c *apiClient) Ha(ctx context.Context, opts ...grpc.CallOption) (Api_HaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Api_ServiceDesc.Streams[0], Api_Ha_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &apiHaClient{stream}
+	return x, nil
 }
 
-// ApiInfoServer is the server API for ApiInfo service.
-// All implementations must embed UnimplementedApiInfoServer
-// for forward compatibility
-type ApiInfoServer interface {
-	GetApiInfo(context.Context, *ApiInfoGetRequest) (*ApiInfoGetReply, error)
-	mustEmbedUnimplementedApiInfoServer()
+type Api_HaClient interface {
+	Send(*RequestHa) error
+	Recv() (*HaReply, error)
+	grpc.ClientStream
 }
 
-// UnimplementedApiInfoServer must be embedded to have forward compatible implementations.
-type UnimplementedApiInfoServer struct {
+type apiHaClient struct {
+	grpc.ClientStream
 }
 
-func (UnimplementedApiInfoServer) GetApiInfo(context.Context, *ApiInfoGetRequest) (*ApiInfoGetReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetApiInfo not implemented")
-}
-func (UnimplementedApiInfoServer) mustEmbedUnimplementedApiInfoServer() {}
-
-// UnsafeApiInfoServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ApiInfoServer will
-// result in compilation errors.
-type UnsafeApiInfoServer interface {
-	mustEmbedUnimplementedApiInfoServer()
+func (x *apiHaClient) Send(m *RequestHa) error {
+	return x.ClientStream.SendMsg(m)
 }
 
-func RegisterApiInfoServer(s grpc.ServiceRegistrar, srv ApiInfoServer) {
-	s.RegisterService(&ApiInfo_ServiceDesc, srv)
-}
-
-func _ApiInfo_GetApiInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ApiInfoGetRequest)
-	if err := dec(in); err != nil {
+func (x *apiHaClient) Recv() (*HaReply, error) {
+	m := new(HaReply)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(ApiInfoServer).GetApiInfo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ApiInfo_GetApiInfo_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApiInfoServer).GetApiInfo(ctx, req.(*ApiInfoGetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
-// ApiInfo_ServiceDesc is the grpc.ServiceDesc for ApiInfo service.
+// ApiServer is the server API for Api service.
+// All implementations must embed UnimplementedApiServer
+// for forward compatibility
+type ApiServer interface {
+	Ha(Api_HaServer) error
+	mustEmbedUnimplementedApiServer()
+}
+
+// UnimplementedApiServer must be embedded to have forward compatible implementations.
+type UnimplementedApiServer struct {
+}
+
+func (UnimplementedApiServer) Ha(Api_HaServer) error {
+	return status.Errorf(codes.Unimplemented, "method Ha not implemented")
+}
+func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
+
+// UnsafeApiServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ApiServer will
+// result in compilation errors.
+type UnsafeApiServer interface {
+	mustEmbedUnimplementedApiServer()
+}
+
+func RegisterApiServer(s grpc.ServiceRegistrar, srv ApiServer) {
+	s.RegisterService(&Api_ServiceDesc, srv)
+}
+
+func _Api_Ha_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ApiServer).Ha(&apiHaServer{stream})
+}
+
+type Api_HaServer interface {
+	Send(*HaReply) error
+	Recv() (*RequestHa, error)
+	grpc.ServerStream
+}
+
+type apiHaServer struct {
+	grpc.ServerStream
+}
+
+func (x *apiHaServer) Send(m *HaReply) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *apiHaServer) Recv() (*RequestHa, error) {
+	m := new(RequestHa)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// Api_ServiceDesc is the grpc.ServiceDesc for Api service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ApiInfo_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ApiInfo",
-	HandlerType: (*ApiInfoServer)(nil),
-	Methods: []grpc.MethodDesc{
+var Api_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "Api",
+	HandlerType: (*ApiServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "GetApiInfo",
-			Handler:    _ApiInfo_GetApiInfo_Handler,
+			StreamName:    "Ha",
+			Handler:       _Api_Ha_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "proto/api.proto",
 }

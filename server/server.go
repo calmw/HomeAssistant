@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	svc "github.com/calmw/home-assistant-grpc-service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	healthsvc "google.golang.org/grpc/health"
@@ -11,11 +10,12 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/anypb"
+	svc "home-assistant/service"
 	"io"
 	"log"
 	"net"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -47,16 +47,16 @@ func main() {
 
 	h := healthsvc.NewServer()
 	registerServices(s, h)
-	updateServiceHealth(h, service.ApiInfo_ServiceDesc, healthz.HealthCheckResponse_SERVING)
+	updateServiceHealth(h, svc.Api_ServiceDesc.ServiceName, healthz.HealthCheckResponse_SERVING)
 	log.Fatal(startServer(s, lis))
 }
 
 type userService struct {
-	svc.UnimplementedUsersServer // 对于grpc中任何服务实现都是强制性的
+	svc.UnimplementedApiServer // 对于grpc中任何服务实现都是强制性的
 }
 
 func registerServices(s *grpc.Server, h *healthsvc.Server) {
-	svc.RegisterUsersServer(s, &userService{})
+	svc.RegisterApiServer(s, &userService{})
 	healthz.RegisterHealthServer(s, h)
 	reflection.Register(s)
 }
@@ -66,7 +66,7 @@ func startServer(s *grpc.Server, l net.Listener) error {
 }
 
 func stopServer(s *grpc.Server, h *healthsvc.Server, d time.Duration) {
-	updateServiceHealth(h, svc.Users_ServiceDesc.ServiceName, healthz.HealthCheckResponse_NOT_SERVING)
+	updateServiceHealth(h, svc.Api_ServiceDesc.ServiceName, healthz.HealthCheckResponse_NOT_SERVING)
 	time.Sleep(d)
 	s.Stop()
 	s.GracefulStop()
@@ -80,7 +80,7 @@ func updateServiceHealth(
 	h.SetServingStatus(service, status)
 }
 
-func (s *userService) GetHelp(stream svc.Users_GetHelpServer) error {
+func (s *userService) GetHelp(stream svc.Api_HaServer) error {
 	log.Println("Client connected")
 
 	for {
@@ -91,13 +91,18 @@ func (s *userService) GetHelp(stream svc.Users_GetHelpServer) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Request received: %s \n", request.Request)
+		fmt.Printf("Request received,requestId:%s, token:%s \n", request.GetRequestId(), request.GetToken())
 
-		if request.Request == "panic" {
+		request.ProtoMessage()
+		if request.GetAction() == "ping" {
 			panic("I was asked to panic")
 		}
 
-		response := svc.UserHelpReply{Response: request.Request}
+		response := svc.HaReply{
+			Token:     request.GetToken(),
+			RequestId: request.GetRequestId(),
+			Data:      &anypb.Any{},
+		}
 
 		err = stream.Send(&response)
 		if err != nil {
@@ -107,29 +112,6 @@ func (s *userService) GetHelp(stream svc.Users_GetHelpServer) error {
 
 	log.Println("Client disconnected")
 	return nil
-}
-
-func (s *userService) GetUser(ctx context.Context, in *svc.UserGetRequest) (*svc.UserGetReply, error) {
-	log.Printf(
-		"Received request for user with Email: %s Id:%s\n",
-		in.Email,
-		in.Id,
-	)
-	components := strings.Split(in.Email, "@")
-	if len(components) != 2 {
-		return nil, status.Error(codes.InvalidArgument, "Invalid email address specified") // status.Error函数创建错误，可以错误码和错误信息一块创建
-	}
-	if components[0] == "panic" {
-		panic("I was asked to panic")
-	}
-	u := svc.User{
-		Id:        in.Id,
-		FirstName: components[0],
-		LastName:  components[1],
-		Age:       36,
-	}
-	//time.Sleep(time.Second)  // 测试服务端超时
-	return &svc.UserGetReply{User: &u}, nil
 }
 
 // 服务端，一元RPC方法调用的日志拦截器
