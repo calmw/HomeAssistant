@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "./service";
+
+service ApiInfo{
+  rpc GetApiInfo(ApiInfoGetRequest) returns (ApiInfoGetReply) {}
+}
+
+message ApiInfoGetRequest {
+  string token = 1;
+}
+
+message Info {
+  string message = 1;
+}
+
+message ApiInfoGetReply {
+  Info info = 1;
+}
