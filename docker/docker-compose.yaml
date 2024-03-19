@@ -1,12 +1,20 @@
-version: '3'
+version: '3.3'
 services:
   homeassistant:
     image: homeassistant/home-assistant:latest
     container_name: homeassistant
     restart: always
     volumes:
-      - /data/homeassistant/config:/config
+      - ./homeassistant/config:/config
     environment:
       - TZ=Asia/Shanghai
     ports:
       - "8123:8123"
+
+  frpc: # 注意:这⾥不是"frps"是"frpc",不同于server端
+    restart: always
+    network_mode: host
+    volumes:
+      - './frpc.ini:/etc/frp/frpc.ini'
+    container_name: frpc
+    image: snowdreamtech/frpc

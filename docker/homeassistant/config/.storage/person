@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "minor_version": 1,
+  "key": "person",
+  "data": {
+    "items": [
+      {
+        "id": "wang_fei",
+        "name": "王飞",
+        "user_id": "fbdc7b88c4064cbca0744b3bb51c2e7a",
+        "device_trackers": []
+      }
+    ]
+  }
+}
