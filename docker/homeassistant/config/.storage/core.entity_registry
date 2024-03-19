@@ -27,7 +27,7 @@
         },
         "original_device_class": "timestamp",
         "original_icon": null,
-        "original_name": "Next dawn",
+        "original_name": "下次清晨",
         "platform": "sun",
         "supported_features": 0,
         "translation_key": "next_dawn",
@@ -58,7 +58,7 @@
         },
         "original_device_class": "timestamp",
         "original_icon": null,
-        "original_name": "Next dusk",
+        "original_name": "下次黄昏",
         "platform": "sun",
         "supported_features": 0,
         "translation_key": "next_dusk",
@@ -89,7 +89,7 @@
         },
         "original_device_class": "timestamp",
         "original_icon": null,
-        "original_name": "Next midnight",
+        "original_name": "下次午夜",
         "platform": "sun",
         "supported_features": 0,
         "translation_key": "next_midnight",
@@ -120,7 +120,7 @@
         },
         "original_device_class": "timestamp",
         "original_icon": null,
-        "original_name": "Next noon",
+        "original_name": "下次正午",
         "platform": "sun",
         "supported_features": 0,
         "translation_key": "next_noon",
@@ -151,7 +151,7 @@
         },
         "original_device_class": "timestamp",
         "original_icon": null,
-        "original_name": "Next rising",
+        "original_name": "下次日出",
         "platform": "sun",
         "supported_features": 0,
         "translation_key": "next_rising",
@@ -182,7 +182,7 @@
         },
         "original_device_class": "timestamp",
         "original_icon": null,
-        "original_name": "Next setting",
+        "original_name": "下次日落",
         "platform": "sun",
         "supported_features": 0,
         "translation_key": "next_setting",
@@ -208,10 +208,14 @@
         "has_entity_name": true,
         "labels": [],
         "name": null,
-        "options": {},
+        "options": {
+          "conversation": {
+            "should_expose": false
+          }
+        },
         "original_device_class": null,
         "original_icon": null,
-        "original_name": "Solar elevation",
+        "original_name": "太阳高度",
         "platform": "sun",
         "supported_features": 0,
         "translation_key": "solar_elevation",
@@ -237,10 +241,14 @@
         "has_entity_name": true,
         "labels": [],
         "name": null,
-        "options": {},
+        "options": {
+          "conversation": {
+            "should_expose": false
+          }
+        },
         "original_device_class": null,
         "original_icon": null,
-        "original_name": "Solar azimuth",
+        "original_name": "太阳方位角",
         "platform": "sun",
         "supported_features": 0,
         "translation_key": "solar_azimuth",
@@ -264,7 +272,11 @@
         "has_entity_name": true,
         "labels": [],
         "name": null,
-        "options": {},
+        "options": {
+          "conversation": {
+            "should_expose": false
+          }
+        },
         "original_device_class": null,
         "original_icon": null,
         "original_name": "Solar rising",

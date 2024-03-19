@@ -1,1 +1,0 @@
-2024-03-19 10:14:23.550 WARNING (MainThread) [homeassistant.components.http.ban] Login attempt or request with invalid authentication from 192.168.65.1 (192.168.65.1). Requested URL: '/api/onboarding/installation_type'. (Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36)

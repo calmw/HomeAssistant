@@ -2,5 +2,16 @@
   "version": 1,
   "minor_version": 1,
   "key": "core.restore_state",
-  "data": []
+  "data": [
+    {
+      "state": {"entity_id":"person.wang_fei","state":"unknown","attributes":{"editable":true,"id":"wang_fei","user_id":"fbdc7b88c4064cbca0744b3bb51c2e7a","device_trackers":[],"friendly_name":"王飞"},"last_changed":"2024-03-19T02:23:34.254889+00:00","last_updated":"2024-03-19T02:23:37.828646+00:00","context":{"id":"01HSA8AYV45Y3FB9130MXAK04W","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-03-19T02:23:37.829743+00:00"
+    },
+    {
+      "state": {"entity_id":"tts.google_en_com","state":"unknown","attributes":{"friendly_name":"Google en com"},"last_changed":"2024-03-19T02:23:35.969020+00:00","last_updated":"2024-03-19T02:23:35.969020+00:00","context":{"id":"01HSA8AX11P1EC7GBB0EJF6S0K","parent_id":null,"user_id":null}},
+      "extra_data": null,
+      "last_seen": "2024-03-19T02:23:37.829743+00:00"
+    }
+  ]
 }
